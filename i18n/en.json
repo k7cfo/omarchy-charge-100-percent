@@ -9,12 +9,11 @@
   "notCharging": "100% limit set, but the battery is not charging. Check the charger.",
   "plugIn": "AC power is not detected. Plug in a charger to select 100%.",
   "capStatus": "Charging limit: %1%.",
-  "explanation": "Travel survives brief cable changes. Five minutes unplugged restores Everyday · %1%, without draining your stored charge.",
   "changing": "Applying charge profile…",
   "unavailable": "Cannot read the charge controller.",
   "unsupported": "This battery does not expose charge thresholds.",
   "grace": "Unplugged: Travel is retained briefly. After five minutes, Everyday returns.",
   "changeFailed": "Could not change the charge profile. Check AC power and charge-helper permissions.",
   "careTitle": "Battery care — why 80%?",
-  "care": "Avoid heat and prolonged time at full charge. Use Everyday at your desk; select Travel when you need the runtime. Do not deliberately drain the battery to zero. For long storage, about half charge is recommended. Five minutes is a convenience grace period, not a battery-health threshold. Source: Apple battery lifespan guidance; links and limitations in the README."
+  "care": "Lithium-ion batteries wear through chemical changes. Heat and long periods at full charge speed that wear.\n\nEveryday · %1% balances useful runtime with less time at high charge. Travel · 100% gives you maximum runtime when you need it, and keeps that limit while plugged in.\n\nThe five-minute grace lets you switch outlets or docks without losing Travel. Stay unplugged longer and Everyday returns automatically. This changes the charging limit—it does not drain your stored charge."
 }

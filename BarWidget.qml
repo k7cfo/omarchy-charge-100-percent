@@ -156,6 +156,7 @@ Ui.BarWidget {
     focusTarget: choices
     contentWidth: fittedContentWidth(Commons.Style.space(330))
     contentHeight: fittedContentHeight(choices.implicitHeight)
+    onOpenChanged: careText.visible = false
 
     Column {
       id: choices
@@ -224,21 +225,10 @@ Ui.BarWidget {
         font.pixelSize: Commons.Style.font.body
         wrapMode: Text.Wrap
       }
-      Text {
-        width: parent.width
-        textFormat: Text.PlainText
-        text: strings.t("explanation").arg(Commons.I18n.formatNumber(root.conserveEnd))
-        color: Commons.Color.popups.text
-        opacity: 0.7
-        font.family: Commons.Style.font.family
-        font.pixelSize: Commons.Style.font.caption
-        wrapMode: Text.Wrap
-      }
       Ui.Button {
         width: parent.width
         text: Model.plain(strings.t("careTitle"))
         focusable: true
-        onHovered: function(hovered) { if (hovered) careText.visible = true }
         onClicked: careText.visible = !careText.visible
       }
       Text {
@@ -246,7 +236,7 @@ Ui.BarWidget {
         visible: false
         width: parent.width
         textFormat: Text.PlainText
-        text: strings.t("care")
+        text: strings.t("care").arg(Commons.I18n.formatNumber(root.conserveEnd))
         color: Commons.Color.popups.text
         font.family: Commons.Style.font.family
         font.pixelSize: Commons.Style.font.caption

@@ -105,7 +105,7 @@ Standalone `qmllint` needs Omarchy's shell exposed as a `qs` import. Current ins
 
 ## Battery care: evidence and limits
 
-The chooser expands its battery-care explanation in place on hover or click, without a separate tooltip. Practical advice:
+The chooser starts with its battery-care explanation hidden. Click the battery-care button to expand or collapse it; reopening the chooser hides it again. It explains battery wear, the Everyday/Travel tradeoff, and the five-minute grace period. Research links stay here rather than in the panel. Practical advice:
 
 - **Avoid heat**, especially while charging. Follow your laptop manufacturer's temperature limits; a cool, ventilated desk is preferable to a hot car or insulating bedding.
 - **Avoid unnecessary extended time at full charge.** Everyday reduces time at a high state of charge; Travel deliberately trades that benefit for runtime. Charging to 100% for a trip is an intended use, not an immediate battery-damage event.
