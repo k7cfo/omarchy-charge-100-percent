@@ -1,0 +1,18 @@
+{
+  "title": "Charge Limit",
+  "battery": "Battery: %1%",
+  "tooltip": "Battery %1% · %2",
+  "conserve": "↓  Conserve battery · %1%",
+  "full": "↑  Charge to 100%",
+  "fullStatus": "Battery full; holding the 100% profile until you unplug.",
+  "chargingStatus": "Charging toward 100%; confirmed by the battery.",
+  "notCharging": "100% limit set, but the battery is not charging. Check the charger.",
+  "plugIn": "AC power is not detected. Plug in a charger to select 100%.",
+  "capStatus": "Charging limit: %1%.",
+  "explanation": "100% stays selected while plugged in. Unplugging restores %1%; it does not force the battery to discharge. Plug in to select 100%.",
+  "changing": "Applying charge profile…",
+  "unavailable": "Cannot read the charge controller.",
+  "unsupported": "This battery does not expose charge thresholds.",
+  "resetFailed": "Conservation has not been restored. Check charge-helper permissions.",
+  "changeFailed": "Could not change the charge profile. Check AC power and charge-helper permissions."
+}

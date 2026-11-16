@@ -1,0 +1,51 @@
+#!/usr/bin/bash
+# One-time root install so Charge Limit can write charge thresholds.
+# Omarchy plugin add never runs this. You run it yourself.
+set -euo pipefail
+
+if ((EUID != 0)); then
+  echo "Run as root: sudo $0" >&2
+  exit 1
+fi
+
+SCRIPT_DIR=$(cd "$(/usr/bin/dirname -- "$0")" && pwd)
+SRC=$SCRIPT_DIR/set-battery-charge-thresholds
+
+if [[ -n ${PKEXEC_UID:-} ]]; then
+  USER_NAME=$(/usr/bin/id -un "$PKEXEC_UID")
+elif [[ -n ${SUDO_USER:-} ]]; then
+  USER_NAME=$SUDO_USER
+else
+  echo "Run via sudo or pkexec so the installing user is known." >&2
+  exit 1
+fi
+
+if [[ ! $USER_NAME =~ ^[A-Za-z_][A-Za-z0-9_.-]{0,31}$ ]]; then
+  echo "Refusing sudoers username: $USER_NAME" >&2
+  exit 1
+fi
+/usr/bin/id -u "$USER_NAME" >/dev/null
+
+if [[ ! -x $SRC ]]; then
+  echo "Missing $SRC" >&2
+  exit 1
+fi
+
+/usr/bin/install -d -m 755 /usr/local/sbin
+/usr/bin/install -o root -g root -m 755 "$SRC" /usr/local/sbin/set-battery-charge-thresholds
+
+if [[ -f /etc/sudoers.d/thinkpad-smart-charge ]]; then
+  echo "Existing thinkpad-smart-charge sudoers rule left in place."
+else
+  tmp=$(/usr/bin/mktemp)
+  trap '/usr/bin/rm -f -- "$tmp"' EXIT
+  cat >"$tmp" <<EOF
+# Allow ${USER_NAME} to set battery charge thresholds only.
+${USER_NAME} ALL=(root) NOPASSWD: /usr/local/sbin/set-battery-charge-thresholds
+EOF
+  /usr/sbin/visudo -cf "$tmp"
+  /usr/bin/install -o root -g root -m 440 "$tmp" /etc/sudoers.d/omarchy-charge
+fi
+
+/usr/local/sbin/set-battery-charge-thresholds 75 80
+echo "Helper installed. Charge cap is 75–80% until you choose 100%."

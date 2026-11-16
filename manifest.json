@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.k7cfo.charge-100-percent",
+  "name": "Charge Limit",
+  "version": "1.0.0",
+  "author": "k7cfo",
+  "license": "MIT",
+  "homepage": "https://github.com/k7cfo/omarchy-charge-100-percent",
+  "description": "A battery toolbar button: conserve at 80%, or hold a full charge until unplugged.",
+  "kinds": [
+    "service",
+    "bar-widget"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Charge Limit",
+    "description": "Battery with an up arrow for full charge or a down arrow for conservation. Click to choose.",
+    "category": "Hardware",
+    "aliases": [
+      "charge",
+      "battery-limit",
+      "conservation"
+    ],
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "conserveEnd": 80
+    },
+    "schema": [
+      {
+        "key": "conserveEnd",
+        "type": "integer",
+        "label": "Battery-life cap (%)",
+        "min": 50,
+        "max": 95,
+        "step": 5,
+        "defaultValue": 80,
+        "description": "Where charging stops for everyday use. 80% is the usual laptop conservation stop. Start threshold is 5 points below, so the pack does not micro-cycle at the cap."
+      }
+    ]
+  }
+}

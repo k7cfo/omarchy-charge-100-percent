@@ -1,0 +1,7 @@
+*.qmlc
+.qml-cache/
+__pycache__/
+*.pyc
+.env
+.env.*
+diag/
