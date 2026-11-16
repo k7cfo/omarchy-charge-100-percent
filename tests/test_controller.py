@@ -22,6 +22,7 @@ class ChargePolicyTest(unittest.TestCase):
         self.set_file(self.battery, "capacity", 80)
         self.set_file(self.battery, "charge_control_start_threshold", 75)
         self.set_file(self.battery, "charge_control_end_threshold", 80)
+        self.set_file(self.root, "clock", 1000)
 
     def set_file(self, directory, name, value):
         (directory / name).write_text(str(value) + "\n")
@@ -33,6 +34,8 @@ class ChargePolicyTest(unittest.TestCase):
 POWER_SUPPLY="$2/power"
 STATE_DIR="$2/state"
 HELPER="$2/no-helper"
+CLOCK_FILE="$2/clock"
+now_seconds() { cat "$CLOCK_FILE"; }
 ''' + before + '\nmain "$3" "${4:-}"\n'
         return subprocess.run(
             ["/usr/bin/bash", "-c", script, "test", str(CONTROLLER), str(self.root), *command],
@@ -55,6 +58,9 @@ HELPER="$2/no-helper"
             self.run_ctl(["tick"])
             self.assert_profile(99, 100)
         self.set_file(self.ac, "online", 0)
+        self.run_ctl(["tick"])
+        self.assert_profile(99, 100)
+        self.set_file(self.root, "clock", 1300)
         self.run_ctl(["tick"])
         self.assert_profile(75, 80)
         self.set_file(self.ac, "online", 1)
@@ -107,7 +113,7 @@ HELPER="$2/no-helper"
         (self.battery / "status").unlink()
         self.assertEqual(self.status()["chargeState"], "Unknown")
 
-    def test_unplug_during_full_write_restores_conservation(self):
+    def test_unplug_during_full_write_starts_grace(self):
         self.run_ctl(["full"], before='''
 original=$(declare -f write_thresholds)
 eval "${original/write_thresholds/original_write}"
@@ -116,6 +122,52 @@ write_thresholds() {
   printf '0\\n' > "$POWER_SUPPLY/AC/online"
 }
 ''')
+        self.assert_profile(99, 100)
+        self.set_file(self.root, "clock", 1300)
+        self.run_ctl(["tick"])
+        self.assert_profile(75, 80)
+
+    def test_short_reconnect_retains_travel_and_restarts_next_grace(self):
+        self.run_ctl(["full"])
+        self.set_file(self.ac, "online", 0)
+        self.run_ctl(["unplug"])
+        self.set_file(self.root, "clock", 1299)
+        self.run_ctl(["tick"])
+        self.assert_profile(99, 100)
+        self.set_file(self.ac, "online", 1)
+        self.run_ctl(["tick"])
+        self.set_file(self.root, "clock", 1500)
+        self.set_file(self.ac, "online", 0)
+        self.run_ctl(["unplug"])
+        self.run_ctl(["tick"])
+        self.assert_profile(99, 100)
+        self.set_file(self.root, "clock", 1800)
+        self.run_ctl(["tick"])
+        self.assert_profile(75, 80)
+
+    def test_reconnect_after_deadline_does_not_rearm_travel(self):
+        self.run_ctl(["full"])
+        self.set_file(self.ac, "online", 0)
+        self.run_ctl(["unplug"])
+        self.set_file(self.root, "clock", 1300)
+        self.set_file(self.ac, "online", 1)
+        self.run_ctl(["tick"])
+        self.assert_profile(75, 80)
+
+    def test_pending_grace_from_another_boot_is_conservative(self):
+        self.run_ctl(["full"])
+        self.set_file(self.root / "state", "unplug_since", "previous-boot 1000")
+        self.run_ctl(["tick"])
+        self.assert_profile(75, 80)
+
+    def test_manual_everyday_during_grace_is_immediate(self):
+        self.run_ctl(["full"])
+        self.set_file(self.ac, "online", 0)
+        self.run_ctl(["unplug"])
+        self.run_ctl(["conserve"])
+        self.assert_profile(75, 80)
+        self.set_file(self.ac, "online", 1)
+        self.run_ctl(["tick"])
         self.assert_profile(75, 80)
 
 

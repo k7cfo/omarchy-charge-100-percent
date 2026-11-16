@@ -18,6 +18,21 @@ if ((10#$CONSERVE_END > 95)); then CONSERVE_END=95; fi
 
 CONSERVE_START=$((10#$CONSERVE_END - 5))
 FULL_END=100
+UNPLUG_GRACE=300
+
+now_seconds() {
+  local uptime rest
+  read -r uptime rest </proc/uptime
+  printf '%s' "${uptime%.*}"
+}
+
+boot_id() { read_file /proc/sys/kernel/random/boot_id; }
+
+mark_unplug() {
+  [[ $(current_mode) == full ]] || return 0
+  [[ -f $STATE_DIR/unplug_since ]] && return 0
+  write_state "$STATE_DIR/unplug_since" "$(boot_id) $(now_seconds)"
+}
 
 ensure_state_dir() {
   local dir=$1 owner
@@ -176,6 +191,7 @@ apply_conserve() {
     write_thresholds "$CONSERVE_START" "$CONSERVE_END" "$bat"
   fi
   set_mode conserve
+  rm -f -- "$STATE_DIR/unplug_since"
 }
 
 apply_full() {
@@ -187,18 +203,31 @@ apply_full() {
   # lets the firmware top up again while the full-charge profile is selected.
   write_thresholds 99 "$FULL_END" "$bat"
   set_mode full
-  # Unplugging during the privileged write must not leave a full-charge cap.
-  if ! is_ac; then apply_conserve; fi
+  rm -f -- "$STATE_DIR/unplug_since"
+  if ! is_ac; then mark_unplug; fi
 }
 
 cmd_tick() {
-  local bat
+  local bat saved_boot since now
   bat=$(find_battery)
   [[ -n $bat ]] || return 0
-  if ! is_ac; then
+  if [[ $(current_mode) != full || $(read_file "$bat/charge_control_end_threshold") != 100 ]]; then
     apply_conserve
-  elif [[ $(current_mode) != full || $(read_file "$bat/charge_control_end_threshold") != 100 ]]; then
-    apply_conserve
+    return
+  fi
+  if [[ -e $STATE_DIR/unplug_since ]]; then
+    read -r saved_boot since <<<"$(read_file "$STATE_DIR/unplug_since")"
+    now=$(now_seconds)
+    if [[ $saved_boot != "$(boot_id)" || ! $since =~ ^[0-9]+$ ]] ||
+        (( now < since || now - since >= UNPLUG_GRACE )); then
+      apply_conserve
+      return
+    fi
+  fi
+  if is_ac; then
+    rm -f -- "$STATE_DIR/unplug_since"
+  else
+    mark_unplug
   fi
 }
 
@@ -208,9 +237,9 @@ main() {
     status) cmd_status "${2:-}"; return ;;
     -h | --help | help)
       echo "Usage: charge-ctl [status [--json]|conserve|full|tick]"
-      echo "Full charge stays selected until unplugged. Conservation defaults to 75–80%."
+      echo "Travel holds 100%; five minutes unplugged restores everyday 75–80%."
       return ;;
-    tick | conserve | full | travel) ;;
+    tick | unplug | conserve | full | travel) ;;
     *) echo "Unknown command: $cmd" >&2; return 1 ;;
   esac
   ensure_state_dir "$STATE_DIR"
@@ -218,6 +247,7 @@ main() {
   /usr/bin/flock -w 5 9
   case "$cmd" in
     tick) cmd_tick ;;
+    unplug) mark_unplug; cmd_tick ;;
     conserve) apply_conserve ;;
     full | travel) apply_full ;;
   esac

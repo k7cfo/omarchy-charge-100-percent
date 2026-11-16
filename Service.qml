@@ -16,7 +16,7 @@ Item {
   function applyPolicy(reset) {
     resetPending = resetPending || reset
     if (policy.running) return
-    policy.command = [runner, ctl, resetPending ? "conserve" : "tick"]
+    policy.command = [runner, ctl, resetPending ? "unplug" : "tick"]
     resetPending = false
     policy.running = true
   }

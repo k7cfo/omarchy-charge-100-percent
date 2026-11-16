@@ -2,10 +2,10 @@
 
 ![Charge Limit with the full-charge profile outlined](preview.png)
 
-A small Quickshell toolbar plugin for Omarchy. Click the battery to choose **100% for this plug session** or your normal conservation limit (80% by default).
+A small Quickshell toolbar plugin for Omarchy. Choose **Travel · 100%** for runtime or **Everyday · 80%** for conservation.
 
 - **100% stays selected after the battery fills.** Firmware handles top-ups using 99–100% start/stop thresholds.
-- **Unplugging restores conservation**, normally 75–80%. Reconnecting does not select 100% again.
+- **Five continuous minutes unplugged restores Everyday**, normally 75–80%. Reconnect sooner and Travel survives; reconnect after expiry and Everyday remains.
 - The current profile has a theme-accent outline; the battery fill shows its charge level.
 - **↑ is hardware-confirmed:** AC connected, 99–100% thresholds, and Charging or Full (or Not charging at 100%). A selected limit alone is not proof of charging.
 - **↓** confirms the conservation limit. `?` means operation is not confirmed; the chooser explains the state.
@@ -51,6 +51,8 @@ Do not run this alongside competing charge policies (including older versions of
 
 The service reacts to UPower unplug events and reconciles the policy every 15 seconds. The indicator refreshes after actions, power-state changes, and periodically. Full charge is disabled when AC is not detected. The theme is followed live. English translations are bundled with Omarchy's language fallback mechanism.
 
+The five-minute deadline is persisted under the shared policy lock using boot-relative time, including suspend time, rather than a wall clock that can jump. Shell restarts and the optional fallback timer share it. Reset occurs on the first policy check at/after expiry (normally within 15 seconds); fallback-only timing follows that timer's interval. A pending deadline from an earlier boot resets conservatively. Clicking Everyday takes effect immediately. This grace period is a convenience choice, not a scientifically established battery-health threshold.
+
 `conserveEnd` in the widget settings defaults to 80; its start threshold is five points lower. If a separate fallback controller exists, keep its configuration aligned.
 
 The shell must be running to observe unplug events immediately. An unplug/replug entirely while powered off or asleep cannot be detected by this plugin. It does not install a boot reset policy; an independently configured conservation-at-boot policy is recommended.
@@ -66,7 +68,7 @@ From the plugin directory:
 ./scripts/charge-ctl tick
 ```
 
-`travel` is another name for `full`. Set `CHARGE_CONSERVE_END` for CLI calls when using a non-default cap. Hardware write failures are not reported as successful selections. Mutating calls share a lock; a disconnect during a full-charge write restores conservation before completion.
+`travel` is another name for `full`. Set `CHARGE_CONSERVE_END` for CLI calls when using a non-default cap. Hardware write failures are not reported as successful selections. Mutating calls share a lock; a disconnect during a full-charge write starts the same grace period. The service's `unplug` command records observed disconnections. Use this backend for any fallback timer; older controllers would bypass the grace period.
 
 ## Remove safely
 
@@ -100,6 +102,17 @@ node --check Model.js
 Tests use isolated battery files, never real sysfs writes or sudo. They cover full-charge retention, unplug/replug, offline rejection, write failure, stale state, disconnect during a write, hardware status, indicator gating, and markup-safe display text. Node and Python are development-only dependencies.
 
 Standalone `qmllint` needs Omarchy's shell exposed as a `qs` import. Current installed framework metadata produces warnings for dynamic theme properties and JavaScript maps assigned to Quickshell's `QVariantHash` environment; those paths have been checked at runtime. Warnings are not suppressed.
+
+## Battery care: evidence and limits
+
+The chooser expands its battery-care explanation in place on hover or click, without a separate tooltip. Practical advice:
+
+- **Avoid heat**, especially while charging. Follow your laptop manufacturer's temperature limits; a cool, ventilated desk is preferable to a hot car or insulating bedding.
+- **Avoid unnecessary extended time at full charge.** Everyday reduces time at a high state of charge; Travel deliberately trades that benefit for runtime. Charging to 100% for a trip is an intended use, not an immediate battery-damage event.
+- **Do not deliberately drain to zero to “exercise” the battery.** For long-term storage, roughly half charge and a cool environment are recommended. A stored empty battery can become deeply discharged.
+- Lowering the cap does not drain stored energy. The plugin never forces a discharge/recharge cycle, bypasses thermal protection, or controls USB-C negotiation. It cannot promise a lifespan improvement of a specific percentage.
+
+Sources: [Apple — Maximizing Battery Life and Lifespan](https://www.apple.com/batteries/maximizing-performance/) explains reducing time at high charge, heat-related permanent capacity loss, and half-charged storage. [Apple — Lithium-ion batteries](https://www.apple.com/batteries/why-lithium-ion/) explains partial charging and cumulative charge cycles. These are manufacturer guidance for lithium-ion devices, not a controlled study of this ThinkPad or a universal 80% optimum. Laptop-specific firmware limits still govern charging.
 
 ## License
 

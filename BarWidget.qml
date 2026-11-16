@@ -28,7 +28,7 @@ Ui.BarWidget {
     status.capacity)
   readonly property string message: !known ? strings.t("unavailable")
     : !status.supported ? strings.t("unsupported")
-    : !status.ac && full ? strings.t("resetFailed")
+    : !status.ac && full ? strings.t("grace")
     : UPower.onBattery || !status.ac ? strings.t("plugIn")
     : fullActive ? (status.chargeState === "Charging" ? strings.t("chargingStatus") : strings.t("fullStatus"))
     : full ? strings.t("notCharging")
@@ -219,7 +219,7 @@ Ui.BarWidget {
         width: parent.width
         textFormat: Text.PlainText
         text: action.running ? strings.t("changing") : root.error || root.message
-        color: root.error || (!root.status.ac && root.full) ? Commons.Color.urgent : Commons.Color.popups.text
+        color: root.error ? Commons.Color.urgent : Commons.Color.popups.text
         font.family: Commons.Style.font.family
         font.pixelSize: Commons.Style.font.body
         wrapMode: Text.Wrap
@@ -230,6 +230,24 @@ Ui.BarWidget {
         text: strings.t("explanation").arg(Commons.I18n.formatNumber(root.conserveEnd))
         color: Commons.Color.popups.text
         opacity: 0.7
+        font.family: Commons.Style.font.family
+        font.pixelSize: Commons.Style.font.caption
+        wrapMode: Text.Wrap
+      }
+      Ui.Button {
+        width: parent.width
+        text: Model.plain(strings.t("careTitle"))
+        focusable: true
+        onHovered: function(hovered) { if (hovered) careText.visible = true }
+        onClicked: careText.visible = !careText.visible
+      }
+      Text {
+        id: careText
+        visible: false
+        width: parent.width
+        textFormat: Text.PlainText
+        text: strings.t("care")
+        color: Commons.Color.popups.text
         font.family: Commons.Style.font.family
         font.pixelSize: Commons.Style.font.caption
         wrapMode: Text.Wrap

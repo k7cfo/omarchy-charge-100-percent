@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "io.github.k7cfo.charge-100-percent",
   "name": "Charge Limit",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "k7cfo",
   "license": "MIT",
   "homepage": "https://github.com/k7cfo/omarchy-charge-100-percent",
-  "description": "A battery toolbar button: conserve at 80%, or hold a full charge until unplugged.",
+  "description": "Travel at 100% or Everyday at 80%, with a five-minute unplug grace period and battery-care guidance.",
   "kinds": [
     "service",
     "bar-widget"
