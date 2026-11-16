@@ -1,6 +1,6 @@
 # Omarchy Charge 100 Percent
 
-![Charge Limit with the full-charge profile outlined](preview.png)
+![Charge Limit with the full-charge profile outlined](https://raw.githubusercontent.com/k7cfo/omarchy-charge-100-percent/6c3a3269b9975e9b25f154b5dc911971dc388396/preview.png)
 
 A small Quickshell toolbar plugin for Omarchy. Choose **Travel · 100%** for runtime or **Everyday · 80%** for conservation.
 
